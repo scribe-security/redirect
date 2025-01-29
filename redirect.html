@@ -4,60 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting...</title>
+
+    <!-- Anti-Caching Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 </head>
 <body>
     <h1>Redirecting...</h1>
     <script>
         (function() {
+            // Halt execution for debugging
+            // debugger;
+            // console.log("🚀 Script started!");
+
+            // Disable browser cache
+            fetch(window.location.href, { cache: "no-store" });
+
             // Define the base target domain
             const targetBase = "https://app.scribesecurity.com";
 
             // Get the current URL's query parameters
             const originalUrl = new URL(window.location.href);
+            // console.log("🔍 Original URL:", originalUrl.href);
+
             const params = new URLSearchParams(originalUrl.search);
+            // console.log("📜 Extracted Query Params:", Object.fromEntries(params.entries()));
 
-            // Extract the 'path' parameter (default to '/')
-            const originalPath = params.get("path") || "/";
-            const decodedPath = decodeURIComponent(originalPath); 
+            // Extract and decode the 'path' parameter (default to '/')
+            let fullPath = decodeURIComponent(params.get("path") || "/");
+            // console.log("📂 Decoded Path:", fullPath);
 
-            // Prepare a new URLSearchParams object
-            let newParams = new URLSearchParams();
+            // Check if the path itself contains query parameters
+            let [decodedPath, pathQueryString] = fullPath.split("?");
+            decodedPath = decodedPath || "/";  // Ensure a valid path
+            // console.log("🛤️ Final Path:", decodedPath);
+            // console.log("🔗 Path Query String:", pathQueryString);
 
-            // Combine `searchPhrase` and `vuln_id`
-            let searchContent = [];
-            if (params.has("searchPhrase")) {
-                searchContent.push(params.get("searchPhrase"));
+            // Collect all query parameters (from URL + embedded path queries)
+            let preservedParams = new URLSearchParams();
+            let searchParamsValue = null;
+
+            // Iterate over query parameters
+            for (const [key, value] of params.entries()) {
+                if (key === "searchPhrase") {
+                    searchParamsValue = value; // Store it for later encoding
+                    continue;
+                }
+                if (key=="path") {
+                    continue;
+                }
+                preservedParams.set(key, value);
             }
-            if (params.has("vuln_id")) {
-                searchContent.push("vuln_id:" + params.get("vuln_id"));
+            // console.log("🔒 Preserved Params (Unchanged):", preservedParams.toString());
+            // console.log(" searchPhrase", searchParamsValue);
+
+            // Parse query parameters embedded inside 'path' (if any)
+            if (pathQueryString) {
+                new URLSearchParams(pathQueryString).forEach((value, key) => {
+                    if (key === "searchPhrase") {
+                        searchParamsValue = value;
+                    } else {
+                        preservedParams.set(key, value);
+                    }
+                });
             }
 
-            if (searchContent.length > 0) {
-                // Join values with space (`%20`) and encode
-                let combinedSearchPhrase = searchContent.join(" ").replace(/&/g, "%20");
+            
 
-                // Convert to URL-safe Base64
-                let base64Phrase = btoa(combinedSearchPhrase)
+            // Process `searchParams`
+            if (searchParamsValue) {
+                // console.log("🔎 Original searchParams:", searchParamsValue);
+
+                // Step 1: Replace `&&` with a space
+                let modifiedSearchParams = searchParamsValue.replace(/&&/g, ' ');
+                // console.log("🔄 searchParams after replacement:", modifiedSearchParams);
+
+                // Step 2: Encode in URL-safe Base64
+                let base64SearchParams = btoa(unescape(encodeURIComponent(modifiedSearchParams)))
                     .replace(/\+/g, '-') // URL-safe conversion
                     .replace(/\//g, '_')
                     .replace(/=+$/, ''); // Remove padding '='
 
-                // Add transformed searchPhrase
-                newParams.set("searchPhrase", base64Phrase);
-            }
+                // console.log("🔐 Encoded searchParams:", base64SearchParams);
 
-            // Preserve all other parameters except `searchPhrase` and `vuln_id`
-            for (const [key, value] of params.entries()) {
-                if (key !== "searchPhrase" && key !== "vuln_id") {
-                    newParams.set(key, value);
-                }
+                // Add `searchParams` with its Base64 value
+                preservedParams.set("searchPhrase", base64SearchParams);
             }
 
             // Construct the final redirection URL
             const newUrl = new URL(targetBase + decodedPath);
-            newUrl.search = newParams.toString();
+            newUrl.search = preservedParams.toString();
 
-            // Redirect the user
+            // console.log("✅ Final Redirect URL:", newUrl.href);
+
+            // 🚨 Debugging: Comment out redirect for testing 🚨
             window.location.href = newUrl.href;
         })();
     </script>
