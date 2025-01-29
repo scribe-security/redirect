@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+</head>
+<body>
+    <h1>Redirecting...</h1>
+    <script>
+        (function() {
+            // Define the base target domain
+            const targetBase = "https://app.scribesecurity.com";
+
+            // Get the current URL's query parameters
+            const originalUrl = new URL(window.location.href);
+            const params = new URLSearchParams(originalUrl.search);
+
+            // Extract the 'path' parameter (default to '/')
+            const originalPath = params.get("path") || "/";
+            const decodedPath = decodeURIComponent(originalPath); 
+
+            // Prepare a new URLSearchParams object
+            let newParams = new URLSearchParams();
+
+            // Combine `searchPhrase` and `vuln_id`
+            let searchContent = [];
+            if (params.has("searchPhrase")) {
+                searchContent.push(params.get("searchPhrase"));
+            }
+            if (params.has("vuln_id")) {
+                searchContent.push("vuln_id:" + params.get("vuln_id"));
+            }
+
+            if (searchContent.length > 0) {
+                // Join values with space (`%20`) and encode
+                let combinedSearchPhrase = searchContent.join(" ").replace(/&/g, "%20");
+
+                // Convert to URL-safe Base64
+                let base64Phrase = btoa(combinedSearchPhrase)
+                    .replace(/\+/g, '-') // URL-safe conversion
+                    .replace(/\//g, '_')
+                    .replace(/=+$/, ''); // Remove padding '='
+
+                // Add transformed searchPhrase
+                newParams.set("searchPhrase", base64Phrase);
+            }
+
+            // Preserve all other parameters except `searchPhrase` and `vuln_id`
+            for (const [key, value] of params.entries()) {
+                if (key !== "searchPhrase" && key !== "vuln_id") {
+                    newParams.set(key, value);
+                }
+            }
+
+            // Construct the final redirection URL
+            const newUrl = new URL(targetBase + decodedPath);
+            newUrl.search = newParams.toString();
+
+            // Redirect the user
+            window.location.href = newUrl.href;
+        })();
+    </script>
+</body>
+</html>
