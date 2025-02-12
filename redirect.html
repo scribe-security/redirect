@@ -14,10 +14,6 @@
     <h1>Redirecting...</h1>
     <script>
         (function() {
-            // Halt execution for debugging
-            // debugger;
-            // console.log("🚀 Script started!");
-
             // Disable browser cache
             fetch(window.location.href, { cache: "no-store" });
 
@@ -26,79 +22,77 @@
 
             // Get the current URL's query parameters
             const originalUrl = new URL(window.location.href);
-            // console.log("🔍 Original URL:", originalUrl.href);
-
             const params = new URLSearchParams(originalUrl.search);
-            // console.log("📜 Extracted Query Params:", Object.fromEntries(params.entries()));
 
             // Extract and decode the 'path' parameter (default to '/')
             let fullPath = decodeURIComponent(params.get("path") || "/");
-            // console.log("📂 Decoded Path:", fullPath);
 
             // Check if the path itself contains query parameters
             let [decodedPath, pathQueryString] = fullPath.split("?");
-            decodedPath = decodedPath || "/";  // Ensure a valid path
-            // console.log("🛤️ Final Path:", decodedPath);
-            // console.log("🔗 Path Query String:", pathQueryString);
+            decodedPath = decodedPath || "/";
 
-            // Collect all query parameters (from URL + embedded path queries)
+            // Collect all query parameters (excluding 'path')
             let preservedParams = new URLSearchParams();
-            let searchParamsValue = null;
+            let searchFiltersRaw = null;
 
-            // Iterate over query parameters
             for (const [key, value] of params.entries()) {
-                if (key === "searchPhrase") {
-                    searchParamsValue = value; // Store it for later encoding
+                if (key === "searchFilters") {
+                    searchFiltersRaw = value;
                     continue;
                 }
-                if (key=="path") {
+                if (key === "path") {
                     continue;
                 }
                 preservedParams.set(key, value);
             }
-            // console.log("🔒 Preserved Params (Unchanged):", preservedParams.toString());
-            // console.log(" searchPhrase", searchParamsValue);
 
-            // Parse query parameters embedded inside 'path' (if any)
+            // Parse query parameters embedded inside 'path'
             if (pathQueryString) {
                 new URLSearchParams(pathQueryString).forEach((value, key) => {
-                    if (key === "searchPhrase") {
-                        searchParamsValue = value;
+                    if (key === "searchFilters") {
+                        searchFiltersRaw = value;
                     } else {
                         preservedParams.set(key, value);
                     }
                 });
             }
 
-            
+            // Process `searchFilters`
+            if (searchFiltersRaw) {
+                try {
+                    // Convert raw searchFilters string into a JSON object
+                    let searchFiltersJson = {};
 
-            // Process `searchParams`
-            if (searchParamsValue) {
-                // console.log("🔎 Original searchParams:", searchParamsValue);
+                    searchFiltersRaw.split(";;").forEach(filter => {
+                        let [key, value] = filter.split(":"); // Split on first `:` only
+                        
+                        if (!searchFiltersJson[key]) {
+                            searchFiltersJson[key] = [];
+                        }
+                        searchFiltersJson[key].push(value ?? ""); // Ensure value is not null
+                    });
 
-                // Step 1: Replace `&&` with a space
-                let modifiedSearchParams = searchParamsValue.replaceAll(';;', ' ');
-                // console.log("🔄 searchParams after replacement:", modifiedSearchParams);
+                    // Convert JSON to string, then URL encode
+                    let encodedJson = encodeURIComponent(JSON.stringify(searchFiltersJson));
 
-                // Step 2: Encode in URL-safe Base64
-                let base64SearchParams = btoa(unescape(encodeURIComponent(modifiedSearchParams)))
-                    .replace(/\+/g, '-') // URL-safe conversion
-                    .replace(/\//g, '_')
-                    .replace(/=+$/, ''); // Remove padding '='
+                    // Base64 encode (URL-safe)
+                    let base64SearchFilters = btoa(unescape(encodeURIComponent(encodedJson)))
+                        .replace(/\+/g, '-')
+                        .replace(/\//g, '_')
+                        .replace(/=+$/, '');
 
-                // console.log("🔐 Encoded searchParams:", base64SearchParams);
-
-                // Add `searchParams` with its Base64 value
-                preservedParams.set("searchPhrase", base64SearchParams);
+                    // Add encoded `searchFilters` back to params
+                    preservedParams.set("searchFilters", base64SearchFilters);
+                } catch (error) {
+                    console.error("❌ Error processing searchFilters:", error);
+                }
             }
 
             // Construct the final redirection URL
             const newUrl = new URL(targetBase + decodedPath);
             newUrl.search = preservedParams.toString();
 
-            // console.log("✅ Final Redirect URL:", newUrl.href);
-
-            // 🚨 Debugging: Comment out redirect for testing 🚨
+            // Perform redirection
             window.location.href = newUrl.href;
         })();
     </script>
