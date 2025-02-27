@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+
+    <!-- Anti-Caching Meta Tags -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <h1>Redirecting...</h1>
+    <script>
+        (function() {
+            // Disable browser cache
+            fetch(window.location.href, { cache: "no-store" });
+
+            // Define the base target domain
+            const targetBase = "https://app.staging.scribesecurity.com";
+
+            // Get the current URL's query parameters
+            const originalUrl = new URL(window.location.href);
+            const params = new URLSearchParams(originalUrl.search);
+
+            // Extract and decode the 'path' parameter (default to '/')
+            let fullPath = decodeURIComponent(params.get("path") || "/");
+
+            // Check if the path itself contains query parameters
+            let [decodedPath, pathQueryString] = fullPath.split("?");
+            decodedPath = decodedPath || "/";
+
+            // Collect all query parameters (excluding 'path')
+            let preservedParams = new URLSearchParams();
+            let searchFiltersRaw = null;
+
+            for (const [key, value] of params.entries()) {
+                if (key === "searchFilters") {
+                    searchFiltersRaw = value;
+                    continue;
+                }
+                if (key === "path") {
+                    continue;
+                }
+                preservedParams.set(key, value);
+            }
+
+            // Parse query parameters embedded inside 'path'
+            if (pathQueryString) {
+                new URLSearchParams(pathQueryString).forEach((value, key) => {
+                    if (key === "searchFilters") {
+                        searchFiltersRaw = value;
+                    } else {
+                        preservedParams.set(key, value);
+                    }
+                });
+            }
+
+            // Process `searchFilters`
+            if (searchFiltersRaw) {
+                try {
+                    // Convert raw searchFilters string into a JSON object
+                    let searchFiltersJson = {};
+
+                    searchFiltersRaw.split(";;").forEach(filter => {
+                        let [key, value] = filter.split(":"); // Split on first `:` only
+                        
+                        if (!searchFiltersJson[key]) {
+                            searchFiltersJson[key] = [];
+                        }
+                        searchFiltersJson[key].push(value ?? ""); // Ensure value is not null
+                    });
+
+                    // Convert JSON to string, then URL encode
+                    let encodedJson = encodeURIComponent(JSON.stringify(searchFiltersJson));
+
+                    // Base64 encode (URL-safe)
+                    let base64SearchFilters = btoa(unescape(encodeURIComponent(encodedJson)))
+                        .replace(/\+/g, '-')
+                        .replace(/\//g, '_')
+                        .replace(/=+$/, '');
+
+                    // Add encoded `searchFilters` back to params
+                    preservedParams.set("searchFilters", base64SearchFilters);
+                } catch (error) {
+                    console.error("❌ Error processing searchFilters:", error);
+                }
+            }
+
+            // Construct the final redirection URL
+            const newUrl = new URL(targetBase + decodedPath);
+            newUrl.search = preservedParams.toString();
+
+            // Perform redirection
+            window.location.href = newUrl.href;
+        })();
+    </script>
+</body>
+</html>
