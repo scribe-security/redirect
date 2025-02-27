@@ -19,6 +19,18 @@ To experiment:
 run `python -m http.server 8090`
 
 And browse to:
-http://localhost:8090/redirect.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchPhrase=product%3AScribot;;product_version%3A40;;show_file_components%3Afalse
+http://localhost:8090/redirect.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchFilters=product%3AScribot;;product_version%3A40;;show_file_components%3Afalse
 
 
+Generated:
+https://app.scribesecurity.com/sbom?redirectTabName=Vulnerabilities&searchFilters=JTdCJTIycHJvZHVjdCUyMiUzQSU1QiUyMlNjcmlib3QlMjIlNUQlMkMlMjJwcm9kdWN0X3ZlcnNpb24lMjIlM0ElNUIlMjI0MCUyMiU1RCUyQyUyMnNob3dfZmlsZV9jb21wb25lbnRzJTIyJTNBJTVCJTIyZmFsc2UlMjIlNUQlN0Q
+
+From browser:
+
+https://app.scribesecurity.com/sbom?redirectTabName=Vulnerabilities&searchFilters=JTdCJTIycHJvZHVjdCUyMiUzQSU1QiUyMlNjcmlib3QlMjIlNUQlMkMlMjJwcm9kdWN0X3ZlcnNpb24lMjIlM0ElNUIlMjI0MCUyMiU1RCU3RA
+
+https://app.scribesecurity.com/sbom?redirectTabName=Vulnerabilities&searchFilters=JTdCJTIycHJvZHVjdCUyMiUzQSU1QiUyMmNvZGVfdG9fY2xvdWQlMjIlNUQlMkMlMjJwcm9kdWN0X3ZlcnNpb24lMjIlM0ElNUIlMjIwLjguMSUyMiU1RCUyQyUyMnNob3dfZmlsZV9jb21wb25lbnRzJTIyJTNBJTVCJTIyZmFsc2UlMjIlNUQlN0Q
+
+For testing on Staging:
+Staging:
+http://localhost:8090/redirect-to-staging.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchFilters=vuln_id:CVE-2021-44906;;show_file_components%3Afalse
