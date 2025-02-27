@@ -34,3 +34,5 @@ https://app.scribesecurity.com/sbom?redirectTabName=Vulnerabilities&searchFilter
 For testing on Staging:
 Staging:
 http://localhost:8090/redirect-to-staging.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchFilters=vuln_id:CVE-2021-44906;;show_file_components%3Afalse
+
+http://scribe-security.github.io/redirect/redirect-to-staging.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchFilters=vuln_id:CVE-2021-44906;;show_file_components%3Afalse
