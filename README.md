@@ -8,7 +8,7 @@ The parameters handled are only the searchPhrase, that has to be formatted as:
 - `key%3Avalue;;key2%3Avalue;;...`
 
 Example:
-https://scribe-security.github.io/redirect/redirect.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchPhrase=product:Star-Generator;;product_version:0.3.31;;show_file_components:false
+https://scribe-security.github.io/redirect/redirect.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchFilters=product:Star-Generator;;product_version:0.3.31;;show_file_components:false
 
 Notes:
 
@@ -36,3 +36,10 @@ Staging:
 http://localhost:8090/redirect-to-staging.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchFilters=vuln_id:CVE-2021-44906;;show_file_components%3Afalse
 
 http://scribe-security.github.io/redirect/redirect-to-staging.html?path=%2Fsbom?redirectTabName=Vulnerabilities&searchFilters=vuln_id:CVE-2021-44906;;show_file_components%3Afalse
+
+Filter by attestation file ID:
+
+http://scribe-security.github.io/redirect/redirect.html?path=%2Fpolicy%2Fevidence&searchFilters=evidence_id:379264
+
+Filter by initiative and product version:
+http://scribe-security.github.io/redirect/redirect.html?path=%2Fpolicy%2Fevaluation&searchFilters=initiative:SSDF;;product:Scribot;;product_version:40
